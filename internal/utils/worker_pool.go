@@ -5,7 +5,7 @@ import (
 )
 
 type Task interface {
-	Process()
+	Process(workerId int)
 }
 
 type WorkerPool struct {
@@ -15,9 +15,9 @@ type WorkerPool struct {
 	wg          sync.WaitGroup
 }
 
-func (wp *WorkerPool) Worker() {
+func (wp *WorkerPool) Worker(workerId int) {
 	for task := range wp.TasksChan {
-		task.Process()
+		task.Process(workerId)
 		wp.wg.Done()
 	}
 }
@@ -26,7 +26,7 @@ func (wp *WorkerPool) Run() {
 	wp.TasksChan = make(chan Task, len(wp.Tasks))
 
 	for i := 0; i < wp.Concurrency; i++ {
-		go wp.Worker()
+		go wp.Worker(i)
 	}
 
 	wp.wg.Add(len(wp.Tasks))
